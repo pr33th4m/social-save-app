@@ -1,13 +1,14 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Clock, Plus, X } from "lucide-react";
+import { Clock, Plus, X, History } from "lucide-react";
 
 interface ScheduledCall {
   id: string;
   time: Date;
   caller: string;
   duration: string;
+  isPast?: boolean;
 }
 
 export function ScheduleScreen() {
@@ -16,7 +17,22 @@ export function ScheduleScreen() {
       id: '1',
       time: new Date(Date.now() + 30000), // 30 seconds from now
       caller: 'Mom',
-      duration: '2 minutes'
+      duration: '2 minutes',
+      isPast: false
+    },
+    {
+      id: '2',
+      time: new Date(Date.now() - 300000), // 5 minutes ago
+      caller: 'Boss',
+      duration: '1 minute',
+      isPast: true
+    },
+    {
+      id: '3',
+      time: new Date(Date.now() - 600000), // 10 minutes ago
+      caller: 'Mom',
+      duration: '3 minutes',
+      isPast: true
     }
   ]);
   
@@ -26,6 +42,20 @@ export function ScheduleScreen() {
   const [customMinutes, setCustomMinutes] = useState(1);
   const [customSeconds, setCustomSeconds] = useState(0);
   const [isCustomTime, setIsCustomTime] = useState(false);
+
+  // Update call status based on current time
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setScheduledCalls(calls => 
+        calls.map(call => ({
+          ...call,
+          isPast: call.time.getTime() < Date.now()
+        }))
+      );
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, []);
 
   const quickTimes = [
     { value: 30, label: '30 sec' },
@@ -44,7 +74,8 @@ export function ScheduleScreen() {
       id: Date.now().toString(),
       time: new Date(Date.now() + timeInSeconds * 1000),
       caller: 'Mom',
-      duration: '2 minutes'
+      duration: '2 minutes',
+      isPast: false
     };
     setScheduledCalls([...scheduledCalls, newCall]);
     setIsScheduling(false);
@@ -59,18 +90,26 @@ export function ScheduleScreen() {
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
+  const formatDate = (date: Date) => {
+    return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+  };
+
   const getCountdown = (date: Date) => {
     const diff = Math.max(0, Math.floor((date.getTime() - Date.now()) / 1000));
+    if (diff === 0) return "Now";
     if (diff < 60) return `${diff}s`;
     const minutes = Math.floor(diff / 60);
     const seconds = diff % 60;
     return `${minutes}m ${seconds}s`;
   };
 
+  const upcomingCalls = scheduledCalls.filter(call => !call.isPast);
+  const pastCalls = scheduledCalls.filter(call => call.isPast);
+
   return (
     <div className="p-6 pb-20">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold">Schedule Call</h1>
+        <h1 className="text-2xl font-bold">Schedule</h1>
         <Button 
           onClick={() => setIsScheduling(true)}
           className="bg-gradient-primary hover:opacity-90"
@@ -174,18 +213,18 @@ export function ScheduleScreen() {
         </Card>
       )}
 
-      {/* Scheduled Calls */}
-      <div>
+      {/* Upcoming Calls */}
+      <div className="mb-8">
         <h2 className="text-lg font-semibold mb-4">Upcoming Calls</h2>
         
-        {scheduledCalls.length === 0 ? (
+        {upcomingCalls.length === 0 ? (
           <Card className="p-8 text-center shadow-card">
             <Clock className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-            <p className="text-muted-foreground">No scheduled calls</p>
+            <p className="text-muted-foreground">No upcoming calls</p>
           </Card>
         ) : (
           <div className="space-y-3">
-            {scheduledCalls.map((call) => (
+            {upcomingCalls.map((call) => (
               <Card key={call.id} className="p-4 shadow-card">
                 <div className="flex items-center justify-between">
                   <div>
@@ -212,6 +251,34 @@ export function ScheduleScreen() {
           </div>
         )}
       </div>
+
+      {/* Past Activity */}
+      {pastCalls.length > 0 && (
+        <div>
+          <div className="flex items-center gap-2 mb-4">
+            <History className="w-5 h-5 text-muted-foreground" />
+            <h2 className="text-lg font-semibold">Past Activity</h2>
+          </div>
+          
+          <div className="space-y-3">
+            {pastCalls.map((call) => (
+              <Card key={call.id} className="p-4 shadow-card opacity-75">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="font-semibold">{call.caller}</span>
+                      <span className="text-sm text-muted-foreground">completed</span>
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      {formatDate(call.time)} at {formatTime(call.time)} • {call.duration}
+                    </p>
+                  </div>
+                </div>
+              </Card>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

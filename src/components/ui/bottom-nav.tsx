@@ -1,5 +1,4 @@
-import { Phone, Users, Settings, Clock } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { Phone, Calendar, Settings } from "lucide-react";
 
 interface BottomNavProps {
   activeTab: string;
@@ -8,36 +7,32 @@ interface BottomNavProps {
 
 const tabs = [
   { id: 'escape', label: 'Escape', icon: Phone },
-  { id: 'contacts', label: 'Contacts', icon: Users },
-  { id: 'schedule', label: 'Schedule', icon: Clock },
+  { id: 'schedule', label: 'Schedule', icon: Calendar },
   { id: 'settings', label: 'Settings', icon: Settings },
 ];
 
 export function BottomNav({ activeTab, onTabChange }: BottomNavProps) {
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-background border-t border-border z-50">
-      <div className="flex justify-around items-center h-16 px-4">
+    <div className="fixed bottom-0 left-0 right-0 bg-background border-t border-border">
+      <div className="flex">
         {tabs.map((tab) => {
           const Icon = tab.icon;
-          const isActive = activeTab === tab.id;
-          
           return (
             <button
               key={tab.id}
               onClick={() => onTabChange(tab.id)}
-              className={cn(
-                "flex flex-col items-center justify-center gap-1 px-3 py-2 rounded-lg transition-all duration-200",
-                isActive 
-                  ? "text-primary bg-primary/10" 
-                  : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
-              )}
+              className={`flex-1 flex flex-col items-center justify-center py-3 px-2 transition-all duration-200 ${
+                activeTab === tab.id
+                  ? 'text-primary bg-primary/5'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
             >
-              <Icon className={cn("w-5 h-5", isActive && "text-primary")} />
+              <Icon className="w-5 h-5 mb-1" />
               <span className="text-xs font-medium">{tab.label}</span>
             </button>
           );
         })}
       </div>
-    </nav>
+    </div>
   );
 }

@@ -2,16 +2,24 @@ import { useState } from "react";
 import { BottomNav } from "@/components/ui/bottom-nav";
 import { HomeScreen } from "@/components/screens/HomeScreen";
 import { FakeCallScreen } from "@/components/screens/FakeCallScreen";
-import { ContactsScreen } from "@/components/screens/ContactsScreen";
 import { ScheduleScreen } from "@/components/screens/ScheduleScreen";
 import { SettingsScreen } from "@/components/screens/SettingsScreen";
-import contactMomImage from "@/assets/contact-mom.jpg";
+
+interface Contact {
+  id: string;
+  name: string;
+  phone: string;
+  relationship: string;
+  image: string;
+}
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState('escape');
   const [showFakeCall, setShowFakeCall] = useState(false);
+  const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
 
-  const handleQuickEscape = (seconds: number) => {
+  const handleQuickEscape = (seconds: number, contact: Contact) => {
+    setSelectedContact(contact);
     if (seconds === 0) {
       // Custom time - for now just use 30 seconds
       setTimeout(() => setShowFakeCall(true), 30000);
@@ -22,14 +30,13 @@ const Index = () => {
 
   const handleEndCall = () => {
     setShowFakeCall(false);
+    setSelectedContact(null);
   };
 
   const renderScreen = () => {
     switch (activeTab) {
       case 'escape':
         return <HomeScreen onQuickEscape={handleQuickEscape} />;
-      case 'contacts':
-        return <ContactsScreen />;
       case 'schedule':
         return <ScheduleScreen />;
       case 'settings':
@@ -41,11 +48,11 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {showFakeCall && (
+      {showFakeCall && selectedContact && (
         <FakeCallScreen
-          callerName="Mom"
-          callerNumber="+1 (555) 123-4567"
-          callerImage={contactMomImage}
+          callerName={selectedContact.name}
+          callerNumber={selectedContact.phone}
+          callerImage={selectedContact.image}
           onEndCall={handleEndCall}
         />
       )}
