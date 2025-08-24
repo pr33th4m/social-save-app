@@ -9,6 +9,7 @@ interface HomeScreenProps {
 
 export function HomeScreen({ onQuickEscape }: HomeScreenProps) {
   const [selectedTime, setSelectedTime] = useState(30);
+  const [customMinutes, setCustomMinutes] = useState(1);
 
   const timeOptions = [
     { value: 30, label: "30 seconds" },
@@ -26,7 +27,7 @@ export function HomeScreen({ onQuickEscape }: HomeScreenProps) {
       {/* Quick Escape Button */}
       <div className="mb-8">
         <Button
-          onClick={() => onQuickEscape(selectedTime)}
+          onClick={() => onQuickEscape(selectedTime === 0 ? customMinutes * 60 : selectedTime)}
           className="w-64 h-64 rounded-full bg-gradient-primary hover:bg-gradient-primary hover:opacity-90 shadow-primary text-white text-xl font-bold transition-all duration-300 hover:scale-105 active:scale-95"
         >
           <div className="flex flex-col items-center gap-2">
@@ -56,9 +57,29 @@ export function HomeScreen({ onQuickEscape }: HomeScreenProps) {
             >
               {option.label}
             </button>
-          ))}
-        </div>
-      </Card>
+            ))}
+          </div>
+          
+          {selectedTime === 0 && (
+            <div className="mt-4 pt-4 border-t border-border">
+              <div className="flex items-center gap-2 mb-3">
+                <Clock className="w-4 h-4 text-primary" />
+                <span className="font-medium text-foreground">Custom Time</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <input
+                  type="number"
+                  min="1"
+                  max="60"
+                  value={customMinutes}
+                  onChange={(e) => setCustomMinutes(Math.max(1, parseInt(e.target.value) || 1))}
+                  className="w-20 px-3 py-2 bg-background border border-border rounded-lg text-center text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                />
+                <span className="text-sm text-muted-foreground">minutes</span>
+              </div>
+            </div>
+          )}
+        </Card>
 
       {/* Recent Calls */}
       <div className="mt-6 w-full max-w-sm">

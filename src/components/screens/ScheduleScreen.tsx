@@ -22,23 +22,33 @@ export function ScheduleScreen() {
   
   const [isScheduling, setIsScheduling] = useState(false);
   const [selectedTime, setSelectedTime] = useState(30); // seconds
+  const [customHours, setCustomHours] = useState(0);
+  const [customMinutes, setCustomMinutes] = useState(1);
+  const [customSeconds, setCustomSeconds] = useState(0);
+  const [isCustomTime, setIsCustomTime] = useState(false);
 
   const quickTimes = [
     { value: 30, label: '30 sec' },
     { value: 60, label: '1 min' },
     { value: 300, label: '5 min' },
     { value: 600, label: '10 min' },
+    { value: -1, label: 'Custom' },
   ];
 
   const handleSchedule = () => {
+    const timeInSeconds = isCustomTime 
+      ? (customHours * 3600 + customMinutes * 60 + customSeconds)
+      : selectedTime;
+    
     const newCall: ScheduledCall = {
       id: Date.now().toString(),
-      time: new Date(Date.now() + selectedTime * 1000),
+      time: new Date(Date.now() + timeInSeconds * 1000),
       caller: 'Mom',
       duration: '2 minutes'
     };
     setScheduledCalls([...scheduledCalls, newCall]);
     setIsScheduling(false);
+    setIsCustomTime(false);
   };
 
   const handleCancel = (id: string) => {
@@ -81,9 +91,16 @@ export function ScheduleScreen() {
               {quickTimes.map((time) => (
                 <button
                   key={time.value}
-                  onClick={() => setSelectedTime(time.value)}
+                  onClick={() => {
+                    if (time.value === -1) {
+                      setIsCustomTime(true);
+                    } else {
+                      setSelectedTime(time.value);
+                      setIsCustomTime(false);
+                    }
+                  }}
                   className={`p-3 rounded-lg text-center transition-all duration-200 ${
-                    selectedTime === time.value
+                    (time.value === -1 && isCustomTime) || (time.value !== -1 && selectedTime === time.value && !isCustomTime)
                       ? 'bg-primary text-primary-foreground shadow-sm'
                       : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
                   }`}
@@ -94,17 +111,57 @@ export function ScheduleScreen() {
             </div>
           </div>
 
-          {/* Time Picker Simulation */}
-          <div className="mb-6">
-            <p className="text-sm font-medium mb-3">Custom Time</p>
-            <div className="flex items-center justify-center p-8 bg-muted/50 rounded-lg">
-              <div className="text-center">
-                <Clock className="w-12 h-12 text-primary mx-auto mb-2" />
-                <p className="text-2xl font-mono">{Math.floor(selectedTime / 60)}:{(selectedTime % 60).toString().padStart(2, '0')}</p>
-                <p className="text-sm text-muted-foreground">minutes:seconds</p>
+          {/* Custom Time Picker */}
+          {isCustomTime && (
+            <div className="mb-6">
+              <p className="text-sm font-medium mb-3">Set Custom Time</p>
+              <div className="p-6 bg-muted/50 rounded-lg">
+                <div className="flex items-center justify-center gap-4">
+                  <div className="text-center">
+                    <label className="block text-xs text-muted-foreground mb-1">Hours</label>
+                    <input
+                      type="number"
+                      min="0"
+                      max="23"
+                      value={customHours}
+                      onChange={(e) => setCustomHours(Math.max(0, Math.min(23, parseInt(e.target.value) || 0)))}
+                      className="w-16 px-2 py-2 bg-background border border-border rounded-lg text-center text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                    />
+                  </div>
+                  <div className="text-2xl text-muted-foreground">:</div>
+                  <div className="text-center">
+                    <label className="block text-xs text-muted-foreground mb-1">Minutes</label>
+                    <input
+                      type="number"
+                      min="0"
+                      max="59"
+                      value={customMinutes}
+                      onChange={(e) => setCustomMinutes(Math.max(0, Math.min(59, parseInt(e.target.value) || 0)))}
+                      className="w-16 px-2 py-2 bg-background border border-border rounded-lg text-center text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                    />
+                  </div>
+                  <div className="text-2xl text-muted-foreground">:</div>
+                  <div className="text-center">
+                    <label className="block text-xs text-muted-foreground mb-1">Seconds</label>
+                    <input
+                      type="number"
+                      min="0"
+                      max="59"
+                      value={customSeconds}
+                      onChange={(e) => setCustomSeconds(Math.max(0, Math.min(59, parseInt(e.target.value) || 0)))}
+                      className="w-16 px-2 py-2 bg-background border border-border rounded-lg text-center text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                    />
+                  </div>
+                </div>
+                <div className="text-center mt-3">
+                  <p className="text-sm text-muted-foreground">
+                    Total: {customHours > 0 && `${customHours}h `}{customMinutes > 0 && `${customMinutes}m `}{customSeconds > 0 && `${customSeconds}s`}
+                    {customHours === 0 && customMinutes === 0 && customSeconds === 0 && "Please set a time"}
+                  </p>
+                </div>
               </div>
             </div>
-          </div>
+          )}
 
           <div className="flex gap-3">
             <Button onClick={handleSchedule} className="flex-1 bg-gradient-primary hover:opacity-90">
