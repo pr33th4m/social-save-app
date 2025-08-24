@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Clock } from "lucide-react";
+import { Clock, Phone } from "lucide-react";
 
 interface HomeScreenProps {
   onQuickEscape: (seconds: number) => void;
@@ -70,4 +70,3 @@ export function HomeScreen({ onQuickEscape }: HomeScreenProps) {
   );
 }
 
-import { Phone } from "lucide-react";
